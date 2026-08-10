@@ -1,5 +1,6 @@
 package com.leonam.gerenciador_eventos.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,5 @@ public interface AdministradorRepository extends JpaRepository<Administrador, Lo
 
     boolean existsByEmail(String email);
 
+    List<Administrador> findByNomeContainingIgnoreCase(String nome);
 }
