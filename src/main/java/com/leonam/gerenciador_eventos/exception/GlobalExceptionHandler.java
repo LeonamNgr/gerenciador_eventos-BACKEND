@@ -18,36 +18,36 @@ public class GlobalExceptionHandler {
         public ResponseEntity<ErroResponseDTO> administradorNaoEncontrado(
                         AdministradorNaoEncontradoException exception) {
 
-                return ResponseEntity
-                                .status(HttpStatus.NOT_FOUND)
-                                .body(new ErroResponseDTO(
-                                                HttpStatus.NOT_FOUND.value(),
-                                                exception.getMessage(),
-                                                LocalDateTime.now()));
+                return criarResposta(
+                                HttpStatus.NOT_FOUND,
+                                exception.getMessage());
         }
 
         @ExceptionHandler(EventoNaoEncontradoException.class)
         public ResponseEntity<ErroResponseDTO> eventoNaoEncontrado(
                         EventoNaoEncontradoException exception) {
 
-                return ResponseEntity
-                                .status(HttpStatus.NOT_FOUND)
-                                .body(new ErroResponseDTO(
-                                                HttpStatus.NOT_FOUND.value(),
-                                                exception.getMessage(),
-                                                LocalDateTime.now()));
+                return criarResposta(
+                                HttpStatus.NOT_FOUND,
+                                exception.getMessage());
         }
 
         @ExceptionHandler(EmailJaCadastradoException.class)
         public ResponseEntity<ErroResponseDTO> emailJaCadastrado(
                         EmailJaCadastradoException exception) {
 
-                return ResponseEntity
-                                .status(HttpStatus.CONFLICT)
-                                .body(new ErroResponseDTO(
-                                                HttpStatus.CONFLICT.value(),
-                                                exception.getMessage(),
-                                                LocalDateTime.now()));
+                return criarResposta(
+                                HttpStatus.CONFLICT,
+                                exception.getMessage());
+        }
+
+        @ExceptionHandler(CredenciaisInvalidasException.class)
+        public ResponseEntity<ErroResponseDTO> credenciaisInvalidas(
+                        CredenciaisInvalidasException exception) {
+
+                return criarResposta(
+                                HttpStatus.UNAUTHORIZED,
+                                exception.getMessage());
         }
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -61,35 +61,40 @@ public class GlobalExceptionHandler {
                                 .map(error -> error.getDefaultMessage())
                                 .orElse("Dados inválidos.");
 
-                return ResponseEntity
-                                .status(HttpStatus.BAD_REQUEST)
-                                .body(new ErroResponseDTO(
-                                                HttpStatus.BAD_REQUEST.value(),
-                                                mensagem,
-                                                LocalDateTime.now()));
+                return criarResposta(
+                                HttpStatus.BAD_REQUEST,
+                                mensagem);
         }
 
         @ExceptionHandler(DataIntegrityViolationException.class)
         public ResponseEntity<ErroResponseDTO> violacaoIntegridade(
                         DataIntegrityViolationException exception) {
 
-                return ResponseEntity
-                                .status(HttpStatus.CONFLICT)
-                                .body(new ErroResponseDTO(
-                                                HttpStatus.CONFLICT.value(),
-                                                "Não foi possível concluir a operação devido a uma restrição do banco de dados.",
-                                                LocalDateTime.now()));
+                return criarResposta(
+                                HttpStatus.CONFLICT,
+                                "Não foi possível concluir a operação devido a uma restrição do banco de dados.");
         }
 
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ErroResponseDTO> erroInterno(
                         Exception exception) {
 
+                return criarResposta(
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                "Ocorreu um erro interno no servidor.");
+        }
+
+        private ResponseEntity<ErroResponseDTO> criarResposta(
+                        HttpStatus status,
+                        String mensagem) {
+
+                ErroResponseDTO erro = new ErroResponseDTO(
+                                status.value(),
+                                mensagem,
+                                LocalDateTime.now());
+
                 return ResponseEntity
-                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(new ErroResponseDTO(
-                                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                                "Ocorreu um erro interno no servidor.",
-                                                LocalDateTime.now()));
+                                .status(status)
+                                .body(erro);
         }
 }
