@@ -14,12 +14,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.leonam.gerenciador_eventos.dto.request.EventoRequestDTO;
+import com.leonam.gerenciador_eventos.dto.response.ErroResponseDTO;
 import com.leonam.gerenciador_eventos.dto.response.EventoResponseDTO;
 import com.leonam.gerenciador_eventos.service.EventoService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -28,96 +32,104 @@ import jakarta.validation.Valid;
 @Tag(name = "Eventos", description = "Operações de gerenciamento de eventos")
 public class EventoController {
 
-    private final EventoService eventoService;
+        private final EventoService eventoService;
 
-    public EventoController(EventoService eventoService) {
-        this.eventoService = eventoService;
-    }
+        public EventoController(EventoService eventoService) {
+                this.eventoService = eventoService;
+        }
 
-    @Operation(summary = "Cadastrar evento", description = "Cadastra um novo evento associado a um administrador.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Evento cadastrado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "404", description = "Administrador não encontrado"),
-            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-    })
-    @PostMapping
-    public ResponseEntity<EventoResponseDTO> cadastrar(
-            @Valid @RequestBody EventoRequestDTO dto) {
+        @Operation(summary = "Listar eventos", description = "Lista todos os eventos cadastrados. Esta consulta é pública e não exige autenticação.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Eventos encontrados."),
+                        @ApiResponse(responseCode = "500", description = "Erro interno do servidor.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class)))
+        })
+        @GetMapping
+        public ResponseEntity<List<EventoResponseDTO>> buscarTodos() {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(eventoService.cadastrar(dto));
-    }
+                return ResponseEntity.ok(
+                                eventoService.buscarTodos());
+        }
 
-    @Operation(summary = "Listar eventos", description = "Lista todos os eventos cadastrados.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Eventos encontrados"),
-            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-    })
-    @GetMapping
-    public ResponseEntity<List<EventoResponseDTO>> buscarTodos() {
+        @Operation(summary = "Buscar evento por ID", description = "Busca um evento através do seu ID. Esta consulta é pública e não exige autenticação.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Evento encontrado."),
+                        @ApiResponse(responseCode = "404", description = "Evento não encontrado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "500", description = "Erro interno do servidor.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class)))
+        })
+        @GetMapping("/{id}")
+        public ResponseEntity<EventoResponseDTO> buscarPorId(
+                        @PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                eventoService.buscarTodos());
-    }
+                return ResponseEntity.ok(
+                                eventoService.buscarPorId(id));
+        }
 
-    @Operation(summary = "Buscar evento por ID", description = "Busca um evento através do seu ID.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Evento encontrado"),
-            @ApiResponse(responseCode = "404", description = "Evento não encontrado"),
-            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<EventoResponseDTO> buscarPorId(
-            @PathVariable Long id) {
+        @Operation(summary = "Cadastrar evento", description = "Cadastra um novo evento. É necessário estar autenticado como administrador.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "201", description = "Evento cadastrado com sucesso."),
+                        @ApiResponse(responseCode = "400", description = "Dados enviados são inválidos.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "401", description = "É necessário estar autenticado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "404", description = "Administrador não encontrado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "500", description = "Erro interno do servidor.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class)))
+        })
+        @PostMapping
+        @SecurityRequirement(name = "bearerAuth")
+        public ResponseEntity<EventoResponseDTO> cadastrar(
+                        @Valid @RequestBody EventoRequestDTO dto) {
 
-        return ResponseEntity.ok(
-                eventoService.buscarPorId(id));
-    }
+                return ResponseEntity
+                                .status(HttpStatus.CREATED)
+                                .body(eventoService.cadastrar(dto));
+        }
 
-    @Operation(summary = "Buscar eventos por administrador", description = "Busca todos os eventos associados a um administrador.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Eventos encontrados"),
-            @ApiResponse(responseCode = "404", description = "Administrador não encontrado"),
-            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-    })
-    @GetMapping("/administrador/{administradorId}")
-    public ResponseEntity<List<EventoResponseDTO>> buscarPorAdministrador(
-            @PathVariable Long administradorId) {
+        @Operation(summary = "Buscar eventos por administrador", description = "Busca os eventos associados a um administrador. É necessário estar autenticado.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Eventos encontrados."),
+                        @ApiResponse(responseCode = "401", description = "É necessário estar autenticado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "404", description = "Administrador não encontrado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "500", description = "Erro interno do servidor.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class)))
+        })
+        @GetMapping("/administrador/{administradorId}")
+        @SecurityRequirement(name = "bearerAuth")
+        public ResponseEntity<List<EventoResponseDTO>> buscarPorAdministrador(
+                        @PathVariable Long administradorId) {
 
-        return ResponseEntity.ok(
-                eventoService.buscarPorAdministrador(administradorId));
-    }
+                return ResponseEntity.ok(
+                                eventoService.buscarPorAdministrador(administradorId));
+        }
 
-    @Operation(summary = "Editar evento", description = "Atualiza os dados de um evento.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Evento atualizado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "404", description = "Evento ou administrador não encontrado"),
-            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-    })
-    @PutMapping("/{id}")
-    public ResponseEntity<EventoResponseDTO> editar(
-            @PathVariable Long id,
-            @Valid @RequestBody EventoRequestDTO dto) {
+        @Operation(summary = "Editar evento", description = "Atualiza os dados de um evento. É necessário estar autenticado como administrador.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Evento atualizado com sucesso."),
+                        @ApiResponse(responseCode = "400", description = "Dados enviados são inválidos.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "401", description = "É necessário estar autenticado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "404", description = "Evento ou administrador não encontrado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "500", description = "Erro interno do servidor.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class)))
+        })
+        @PutMapping("/{id}")
+        @SecurityRequirement(name = "bearerAuth")
+        public ResponseEntity<EventoResponseDTO> editar(
+                        @PathVariable Long id,
+                        @Valid @RequestBody EventoRequestDTO dto) {
 
-        return ResponseEntity.ok(
-                eventoService.editar(id, dto));
-    }
+                return ResponseEntity.ok(
+                                eventoService.editar(id, dto));
+        }
 
-    @Operation(summary = "Excluir evento", description = "Exclui um evento através do seu ID.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Evento excluído com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Evento não encontrado"),
-            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-    })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(
-            @PathVariable Long id) {
+        @Operation(summary = "Excluir evento", description = "Exclui um evento através do seu ID. É necessário estar autenticado como administrador.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "204", description = "Evento excluído com sucesso."),
+                        @ApiResponse(responseCode = "401", description = "É necessário estar autenticado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "404", description = "Evento não encontrado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class))),
+                        @ApiResponse(responseCode = "500", description = "Erro interno do servidor.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErroResponseDTO.class)))
+        })
+        @DeleteMapping("/{id}")
+        @SecurityRequirement(name = "bearerAuth")
+        public ResponseEntity<Void> deletar(
+                        @PathVariable Long id) {
 
-        eventoService.deletar(id);
+                eventoService.deletar(id);
 
-        return ResponseEntity.noContent().build();
-    }
+                return ResponseEntity.noContent().build();
+        }
 }
