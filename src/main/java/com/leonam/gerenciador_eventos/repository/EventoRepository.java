@@ -12,4 +12,7 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
 
     List<Evento> findByAdministradorId(Long administradorId);
 
+    boolean existsByAdministradorId(Long administradorId);
+
+    List<Evento> findByNomeEventoContainingIgnoreCase(String nomeEvento);
 }
