@@ -2,12 +2,16 @@ package com.leonam.gerenciador_eventos.service;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.leonam.gerenciador_eventos.dto.request.EventoRequestDTO;
 import com.leonam.gerenciador_eventos.dto.response.EventoResponseDTO;
 import com.leonam.gerenciador_eventos.entity.Administrador;
 import com.leonam.gerenciador_eventos.entity.Evento;
+import com.leonam.gerenciador_eventos.exception.AdministradorNaoEncontradoException;
 import com.leonam.gerenciador_eventos.exception.EventoNaoEncontradoException;
 import com.leonam.gerenciador_eventos.repository.EventoRepository;
 
@@ -15,20 +19,15 @@ import com.leonam.gerenciador_eventos.repository.EventoRepository;
 public class EventoService {
 
     private final EventoRepository eventoRepository;
-    private final AdministradorService administradorService;
 
-    public EventoService(
-            EventoRepository eventoRepository,
-            AdministradorService administradorService) {
-
+    public EventoService(EventoRepository eventoRepository) {
         this.eventoRepository = eventoRepository;
-        this.administradorService = administradorService;
     }
 
+    @Transactional
     public EventoResponseDTO cadastrar(EventoRequestDTO dto) {
 
-        Administrador administrador = administradorService.buscarEntidadePorId(
-                dto.getAdministradorId());
+        Administrador administrador = obterAdministradorLogado();
 
         Evento evento = new Evento();
 
@@ -45,6 +44,7 @@ public class EventoService {
         return converterParaResponse(evento);
     }
 
+    @Transactional(readOnly = true)
     public EventoResponseDTO buscarPorId(Long id) {
 
         Evento evento = buscarEntidadePorId(id);
@@ -52,6 +52,7 @@ public class EventoService {
         return converterParaResponse(evento);
     }
 
+    @Transactional(readOnly = true)
     public List<EventoResponseDTO> buscarTodos() {
 
         return eventoRepository.findAll()
@@ -60,10 +61,20 @@ public class EventoService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<EventoResponseDTO> buscarPorNome(
+            String nomeEvento) {
+
+        return eventoRepository
+                .findByNomeEventoContainingIgnoreCase(nomeEvento)
+                .stream()
+                .map(this::converterParaResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<EventoResponseDTO> buscarPorAdministrador(
             Long administradorId) {
-
-        administradorService.buscarEntidadePorId(administradorId);
 
         return eventoRepository
                 .findByAdministradorId(administradorId)
@@ -72,14 +83,16 @@ public class EventoService {
                 .toList();
     }
 
+    @Transactional
     public EventoResponseDTO editar(
             Long id,
             EventoRequestDTO dto) {
 
         Evento evento = buscarEntidadePorId(id);
 
-        Administrador administrador = administradorService.buscarEntidadePorId(
-                dto.getAdministradorId());
+        Administrador administrador = obterAdministradorLogado();
+
+        verificarProprietario(evento, administrador);
 
         evento.setNomeEvento(dto.getNomeEvento());
         evento.setData(dto.getData());
@@ -87,16 +100,20 @@ public class EventoService {
         evento.setLocal(dto.getLocal());
         evento.setDescricao(dto.getDescricao());
         evento.setImagem(dto.getImagem());
-        evento.setAdministrador(administrador);
 
         evento = eventoRepository.save(evento);
 
         return converterParaResponse(evento);
     }
 
+    @Transactional
     public void deletar(Long id) {
 
         Evento evento = buscarEntidadePorId(id);
+
+        Administrador administrador = obterAdministradorLogado();
+
+        verificarProprietario(evento, administrador);
 
         eventoRepository.delete(evento);
     }
@@ -105,7 +122,42 @@ public class EventoService {
 
         return eventoRepository.findById(id)
                 .orElseThrow(() -> new EventoNaoEncontradoException(
-                        "Evento não encontrado."));
+                        "Evento com ID "
+                                + id
+                                + " não encontrado."));
+    }
+
+    private Administrador obterAdministradorLogado() {
+
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof Administrador)) {
+
+            throw new AdministradorNaoEncontradoException(
+                    "Administrador autenticado não encontrado.");
+        }
+
+        return (Administrador) authentication.getPrincipal();
+    }
+
+    private void verificarProprietario(
+            Evento evento,
+            Administrador administrador) {
+
+        if (evento.getAdministrador() == null
+                || !evento.getAdministrador()
+                        .getId()
+                        .equals(administrador.getId())) {
+
+            throw new EventoNaoEncontradoException(
+                    "Evento com ID "
+                            + evento.getId()
+                            + " não encontrado.");
+        }
     }
 
     private EventoResponseDTO converterParaResponse(

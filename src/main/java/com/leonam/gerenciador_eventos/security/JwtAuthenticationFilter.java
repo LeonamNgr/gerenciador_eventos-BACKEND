@@ -8,7 +8,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.leonam.gerenciador_eventos.entity.Administrador;
 import com.leonam.gerenciador_eventos.repository.AdministradorRepository;
 
 import jakarta.servlet.FilterChain;
@@ -45,21 +44,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (email != null) {
 
-                Administrador administrador = administradorRepository
+                administradorRepository
                         .findByEmail(email)
-                        .orElse(null);
+                        .ifPresent(administrador -> {
 
-                if (administrador != null) {
+                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                    administrador,
+                                    null,
+                                    Collections.emptyList());
 
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            administrador,
-                            null,
-                            Collections.emptyList());
-
-                    SecurityContextHolder
-                            .getContext()
-                            .setAuthentication(authentication);
-                }
+                            SecurityContextHolder
+                                    .getContext()
+                                    .setAuthentication(authentication);
+                        });
             }
         }
 
@@ -71,11 +68,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authorizationHeader = request.getHeader("Authorization");
 
         if (authorizationHeader == null
-                || !authorizationHeader.startsWith("Bearer ")) {
+                || authorizationHeader.isBlank()) {
 
             return null;
         }
 
-        return authorizationHeader.substring(7);
+        if (!authorizationHeader.startsWith("Bearer ")) {
+
+            return null;
+        }
+
+        String token = authorizationHeader.substring(7).trim();
+
+        if (token.isBlank()) {
+
+            return null;
+        }
+
+        return token;
     }
 }

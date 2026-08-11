@@ -34,14 +34,10 @@ public class EventoRequestDTO {
 
     @Schema(description = "Descrição do evento")
     @NotBlank(message = "A descrição do evento é obrigatória.")
-    @Size(max = 200, message = "A descrição do evento deve ter no máximo 200 caracteres.")
+    @Size(max = 2000, message = "A descrição do evento deve ter no máximo 2000 caracteres.")
     private String descricao;
 
     @Schema(description = "URL ou caminho da imagem do evento")
     @Size(max = 500, message = "A imagem deve ter no máximo 500 caracteres.")
     private String imagem;
-
-    @Schema(description = "ID do administrador responsável pelo evento")
-    @NotNull(message = "O administrador é obrigatório.")
-    private Long administradorId;
 }

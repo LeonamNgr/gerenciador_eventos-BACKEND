@@ -22,8 +22,7 @@ public class AdministradorRequestDTO {
     @Size(max = 100, message = "O e-mail do administrador deve ter no máximo 100 caracteres.")
     private String email;
 
-    @Schema(description = "Senha do administrador")
-    @NotBlank(message = "A senha do administrador é obrigatória.")
+    @Schema(description = "Senha do administrador. Obrigatória no cadastro e opcional na edição.", example = "Admin@123456")
     @Size(min = 8, max = 20, message = "A senha deve ter entre 8 e 20 caracteres.")
     private String senha;
 }

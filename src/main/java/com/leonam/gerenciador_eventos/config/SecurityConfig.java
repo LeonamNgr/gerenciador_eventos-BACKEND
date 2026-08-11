@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.leonam.gerenciador_eventos.security.JwtAccessDeniedHandler;
 import com.leonam.gerenciador_eventos.security.JwtAuthenticationEntryPoint;
 import com.leonam.gerenciador_eventos.security.JwtAuthenticationFilter;
 
@@ -17,13 +18,16 @@ public class SecurityConfig {
 
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
         private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+        private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
         public SecurityConfig(
                         JwtAuthenticationFilter jwtAuthenticationFilter,
-                        JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
+                        JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+                        JwtAccessDeniedHandler jwtAccessDeniedHandler) {
 
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+                this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
         }
 
         @Bean
@@ -42,12 +46,15 @@ public class SecurityConfig {
 
                                 .httpBasic(basic -> basic.disable())
 
+                                .exceptionHandling(exception -> exception
+                                                .authenticationEntryPoint(
+                                                                jwtAuthenticationEntryPoint)
+                                                .accessDeniedHandler(
+                                                                jwtAccessDeniedHandler))
+
                                 .authorizeHttpRequests(auth -> auth
 
-                                                // =========================
-                                                // ROTAS PÚBLICAS
-                                                // =========================
-
+                                                // Login e documentação públicos
                                                 .requestMatchers(
                                                                 "/login",
                                                                 "/swagger-ui/**",
@@ -55,37 +62,23 @@ public class SecurityConfig {
                                                                 "/v3/api-docs/**")
                                                 .permitAll()
 
-                                                // Qualquer pessoa pode visualizar eventos
+                                                // Consulta pública de eventos
                                                 .requestMatchers(
                                                                 HttpMethod.GET,
                                                                 "/eventos",
-                                                                "/eventos/{id}")
+                                                                "/eventos/*")
                                                 .permitAll()
 
-                                                // =========================
-                                                // ROTAS PROTEGIDAS
-                                                // =========================
-
-                                                // Administradores
+                                                // Área administrativa protegida
                                                 .requestMatchers(
-                                                                "/administradores/**")
-                                                .authenticated()
-
-                                                // Operações administrativas de eventos
-                                                .requestMatchers(
+                                                                "/administradores/**",
                                                                 "/eventos/**")
                                                 .authenticated()
 
-                                                // Qualquer outra rota
+                                                // Qualquer outro endpoint também exige autenticação
                                                 .anyRequest()
                                                 .authenticated())
 
-                                // Resposta personalizada para acesso sem autenticação
-                                .exceptionHandling(exception -> exception
-                                                .authenticationEntryPoint(
-                                                                jwtAuthenticationEntryPoint))
-
-                                // Filtro JWT
                                 .addFilterBefore(
                                                 jwtAuthenticationFilter,
                                                 UsernamePasswordAuthenticationFilter.class);

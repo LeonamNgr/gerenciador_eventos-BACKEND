@@ -29,7 +29,8 @@ public class AuthService {
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
 
-        Administrador administrador = administradorRepository.findByEmail(dto.getEmail())
+        Administrador administrador = administradorRepository
+                .findByEmail(dto.getEmail())
                 .orElseThrow(() -> new CredenciaisInvalidasException(
                         "E-mail ou senha inválidos."));
 

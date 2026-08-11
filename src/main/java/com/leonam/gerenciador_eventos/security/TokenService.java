@@ -5,6 +5,8 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,10 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class TokenService {
+
+    private static final Logger logger = LoggerFactory.getLogger(TokenService.class);
+
+    private static final long DURACAO_TOKEN_MILLIS = 2 * 60 * 60 * 1000L;
 
     private final SecretKey secretKey;
 
@@ -30,7 +36,7 @@ public class TokenService {
         Date agora = new Date();
 
         Date expiracao = new Date(
-                agora.getTime() + 2 * 60 * 60 * 1000);
+                agora.getTime() + DURACAO_TOKEN_MILLIS);
 
         return Jwts.builder()
                 .subject(administrador.getEmail())
@@ -51,7 +57,11 @@ public class TokenService {
                     .getPayload()
                     .getSubject();
 
-        } catch (Exception e) {
+        } catch (Exception exception) {
+
+            logger.debug(
+                    "Token JWT inválido ou expirado: {}",
+                    exception.getMessage());
 
             return null;
         }
