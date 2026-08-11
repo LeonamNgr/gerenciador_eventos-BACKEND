@@ -17,10 +17,15 @@ import com.leonam.gerenciador_eventos.dto.request.EventoRequestDTO;
 import com.leonam.gerenciador_eventos.dto.response.EventoResponseDTO;
 import com.leonam.gerenciador_eventos.service.EventoService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/eventos")
+@Tag(name = "Eventos", description = "Operações de gerenciamento de eventos")
 public class EventoController {
 
     private final EventoService eventoService;
@@ -29,6 +34,13 @@ public class EventoController {
         this.eventoService = eventoService;
     }
 
+    @Operation(summary = "Cadastrar evento", description = "Cadastra um novo evento associado a um administrador.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Evento cadastrado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Administrador não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PostMapping
     public ResponseEntity<EventoResponseDTO> cadastrar(
             @Valid @RequestBody EventoRequestDTO dto) {
@@ -38,6 +50,11 @@ public class EventoController {
                 .body(eventoService.cadastrar(dto));
     }
 
+    @Operation(summary = "Listar eventos", description = "Lista todos os eventos cadastrados.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Eventos encontrados"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping
     public ResponseEntity<List<EventoResponseDTO>> buscarTodos() {
 
@@ -45,6 +62,12 @@ public class EventoController {
                 eventoService.buscarTodos());
     }
 
+    @Operation(summary = "Buscar evento por ID", description = "Busca um evento através do seu ID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Evento encontrado"),
+            @ApiResponse(responseCode = "404", description = "Evento não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<EventoResponseDTO> buscarPorId(
             @PathVariable Long id) {
@@ -53,6 +76,12 @@ public class EventoController {
                 eventoService.buscarPorId(id));
     }
 
+    @Operation(summary = "Buscar eventos por administrador", description = "Busca todos os eventos associados a um administrador.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Eventos encontrados"),
+            @ApiResponse(responseCode = "404", description = "Administrador não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping("/administrador/{administradorId}")
     public ResponseEntity<List<EventoResponseDTO>> buscarPorAdministrador(
             @PathVariable Long administradorId) {
@@ -61,6 +90,13 @@ public class EventoController {
                 eventoService.buscarPorAdministrador(administradorId));
     }
 
+    @Operation(summary = "Editar evento", description = "Atualiza os dados de um evento.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Evento atualizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Evento ou administrador não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<EventoResponseDTO> editar(
             @PathVariable Long id,
@@ -70,6 +106,12 @@ public class EventoController {
                 eventoService.editar(id, dto));
     }
 
+    @Operation(summary = "Excluir evento", description = "Exclui um evento através do seu ID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Evento excluído com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Evento não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(
             @PathVariable Long id) {

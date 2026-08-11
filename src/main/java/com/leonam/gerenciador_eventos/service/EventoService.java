@@ -8,6 +8,7 @@ import com.leonam.gerenciador_eventos.dto.request.EventoRequestDTO;
 import com.leonam.gerenciador_eventos.dto.response.EventoResponseDTO;
 import com.leonam.gerenciador_eventos.entity.Administrador;
 import com.leonam.gerenciador_eventos.entity.Evento;
+import com.leonam.gerenciador_eventos.exception.EventoNaoEncontradoException;
 import com.leonam.gerenciador_eventos.repository.EventoRepository;
 
 @Service
@@ -103,7 +104,7 @@ public class EventoService {
     private Evento buscarEntidadePorId(Long id) {
 
         return eventoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(
+                .orElseThrow(() -> new EventoNaoEncontradoException(
                         "Evento não encontrado."));
     }
 

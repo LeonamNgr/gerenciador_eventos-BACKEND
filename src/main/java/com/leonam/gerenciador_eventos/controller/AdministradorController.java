@@ -18,10 +18,15 @@ import com.leonam.gerenciador_eventos.dto.request.AdministradorRequestDTO;
 import com.leonam.gerenciador_eventos.dto.response.AdministradorResponseDTO;
 import com.leonam.gerenciador_eventos.service.AdministradorService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/administradores")
+@Tag(name = "Administradores", description = "Operações de gerenciamento de administradores")
 public class AdministradorController {
 
     private final AdministradorService administradorService;
@@ -32,6 +37,13 @@ public class AdministradorController {
         this.administradorService = administradorService;
     }
 
+    @Operation(summary = "Cadastrar administrador", description = "Cadastra um novo administrador.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Administrador cadastrado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "409", description = "E-mail já cadastrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PostMapping
     public ResponseEntity<AdministradorResponseDTO> cadastrar(
             @Valid @RequestBody AdministradorRequestDTO dto) {
@@ -41,14 +53,11 @@ public class AdministradorController {
                 .body(administradorService.cadastrar(dto));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<AdministradorResponseDTO> buscarPorId(
-            @PathVariable Long id) {
-
-        return ResponseEntity.ok(
-                administradorService.buscarPorId(id));
-    }
-
+    @Operation(summary = "Listar administradores", description = "Lista todos os administradores ou filtra pelo nome.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping
     public ResponseEntity<List<AdministradorResponseDTO>> buscar(
             @RequestParam(required = false) String nome) {
@@ -62,6 +71,14 @@ public class AdministradorController {
                 administradorService.buscarPorNome(nome));
     }
 
+    @Operation(summary = "Editar administrador", description = "Atualiza os dados de um administrador.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Administrador atualizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Administrador não encontrado"),
+            @ApiResponse(responseCode = "409", description = "E-mail já cadastrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<AdministradorResponseDTO> editar(
             @PathVariable Long id,
@@ -71,6 +88,13 @@ public class AdministradorController {
                 administradorService.editar(id, dto));
     }
 
+    @Operation(summary = "Excluir administrador", description = "Exclui um administrador através do seu ID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Administrador excluído com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Administrador não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Não foi possível excluir o administrador devido a uma restrição do banco"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(
             @PathVariable Long id) {
