@@ -1,5 +1,6 @@
 package com.leonam.gerenciador_eventos.entity;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +16,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
+@Tag(name = "Administradores", description = "Operações de gerenciamento de administradores")
 @Entity
 @Table(name = "administrador")
 public class Administrador {

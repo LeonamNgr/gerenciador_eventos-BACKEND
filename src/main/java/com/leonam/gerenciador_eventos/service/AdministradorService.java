@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import com.leonam.gerenciador_eventos.dto.request.AdministradorRequestDTO;
 import com.leonam.gerenciador_eventos.dto.response.AdministradorResponseDTO;
 import com.leonam.gerenciador_eventos.entity.Administrador;
+import com.leonam.gerenciador_eventos.exception.AdministradorNaoEncontradoException;
+import com.leonam.gerenciador_eventos.exception.EmailJaCadastradoException;
 import com.leonam.gerenciador_eventos.repository.AdministradorRepository;
 
 @Service
@@ -28,7 +30,8 @@ public class AdministradorService {
             AdministradorRequestDTO dto) {
 
         if (administradorRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("E-mail já cadastrado.");
+            throw new EmailJaCadastradoException(
+                    "E-mail já cadastrado.");
         }
 
         String senhaCriptografada = passwordEncoder.encode(dto.getSenha());
@@ -53,7 +56,7 @@ public class AdministradorService {
     public Administrador buscarEntidadePorId(Long id) {
 
         return administradorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(
+                .orElseThrow(() -> new AdministradorNaoEncontradoException(
                         "Administrador não encontrado."));
     }
 
@@ -84,7 +87,8 @@ public class AdministradorService {
         if (!administrador.getEmail().equals(dto.getEmail())
                 && administradorRepository.existsByEmail(dto.getEmail())) {
 
-            throw new RuntimeException("E-mail já cadastrado.");
+            throw new EmailJaCadastradoException(
+                    "E-mail já cadastrado.");
         }
 
         administrador.setNome(dto.getNome());
