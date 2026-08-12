@@ -42,6 +42,9 @@ public class SecurityConfig {
                 http
                                 .csrf(csrf -> csrf.disable())
 
+                                .cors(cors -> {
+                                })
+
                                 .formLogin(form -> form.disable())
 
                                 .httpBasic(basic -> basic.disable())

@@ -90,16 +90,14 @@ public class EventoService {
 
         Evento evento = buscarEntidadePorId(id);
 
-        Administrador administrador = obterAdministradorLogado();
-
-        verificarProprietario(evento, administrador);
-
         evento.setNomeEvento(dto.getNomeEvento());
         evento.setData(dto.getData());
         evento.setHora(dto.getHora());
         evento.setLocal(dto.getLocal());
         evento.setDescricao(dto.getDescricao());
         evento.setImagem(dto.getImagem());
+
+        // O administrador responsável pelo evento permanece o mesmo.
 
         evento = eventoRepository.save(evento);
 
@@ -110,10 +108,6 @@ public class EventoService {
     public void deletar(Long id) {
 
         Evento evento = buscarEntidadePorId(id);
-
-        Administrador administrador = obterAdministradorLogado();
-
-        verificarProprietario(evento, administrador);
 
         eventoRepository.delete(evento);
     }
@@ -142,22 +136,6 @@ public class EventoService {
         }
 
         return (Administrador) authentication.getPrincipal();
-    }
-
-    private void verificarProprietario(
-            Evento evento,
-            Administrador administrador) {
-
-        if (evento.getAdministrador() == null
-                || !evento.getAdministrador()
-                        .getId()
-                        .equals(administrador.getId())) {
-
-            throw new EventoNaoEncontradoException(
-                    "Evento com ID "
-                            + evento.getId()
-                            + " não encontrado.");
-        }
     }
 
     private EventoResponseDTO converterParaResponse(
