@@ -101,7 +101,7 @@ public class EventoController {
                                 eventoService.buscarPorAdministrador(administradorId));
         }
 
-        @Operation(summary = "Editar evento", description = "Atualiza os dados de um evento. Somente o administrador responsável pode editar.")
+        @Operation(summary = "Editar evento", description = "Atualiza os dados de um evento. Qualquer administrador autenticado pode editar qualquer evento.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Evento atualizado com sucesso"),
                         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
@@ -119,7 +119,7 @@ public class EventoController {
                                 eventoService.editar(id, dto));
         }
 
-        @Operation(summary = "Excluir evento", description = "Exclui um evento. Somente o administrador responsável pode excluir.")
+        @Operation(summary = "Excluir evento", description = "Exclui um evento. Qualquer administrador autenticado pode excluir qualquer evento.")
         @ApiResponses({
                         @ApiResponse(responseCode = "204", description = "Evento excluído com sucesso"),
                         @ApiResponse(responseCode = "401", description = "Usuário não autenticado ou token inválido"),
