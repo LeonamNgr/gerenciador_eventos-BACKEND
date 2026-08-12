@@ -39,4 +39,7 @@ public class EventoResponseDTO {
 
     @Schema(description = "ID do administrador responsável")
     private Long administradorId;
+
+    @Schema(description = "Nome do administrador responsável")
+    private String administradorNome;
 }
