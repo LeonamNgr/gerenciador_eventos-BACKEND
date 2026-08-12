@@ -149,6 +149,7 @@ public class EventoService {
                 evento.getLocal(),
                 evento.getDescricao(),
                 evento.getImagem(),
-                evento.getAdministrador().getId());
+                evento.getAdministrador().getId(),
+                evento.getAdministrador().getNome());
     }
 }
