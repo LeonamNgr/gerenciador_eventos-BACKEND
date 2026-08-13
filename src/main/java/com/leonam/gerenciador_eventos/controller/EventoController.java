@@ -2,6 +2,10 @@ package com.leonam.gerenciador_eventos.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +23,7 @@ import com.leonam.gerenciador_eventos.dto.response.EventoResponseDTO;
 import com.leonam.gerenciador_eventos.service.EventoService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -70,6 +75,34 @@ public class EventoController {
 
                 return ResponseEntity.ok(
                                 eventoService.buscarPorNome(nome));
+        }
+
+        @Operation(summary = "Listar eventos com paginação", description = "Lista os eventos de forma paginada. A consulta é pública e permite busca pelo nome e ordenação dos resultados.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Consulta paginada realizada com sucesso"),
+                        @ApiResponse(responseCode = "400", description = "Parâmetros de paginação inválidos"),
+                        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+        })
+        @GetMapping("/pagina")
+        public ResponseEntity<Page<EventoResponseDTO>> buscarPagina(
+
+                        @Parameter(description = "Nome ou parte do nome do evento utilizado para pesquisa.", example = "Festival") @RequestParam(required = false) String nome,
+
+                        @Parameter(description = "Número da página. A primeira página é 0.", example = "0") @RequestParam(defaultValue = "0") int page,
+
+                        @Parameter(description = "Quantidade de eventos por página.", example = "6") @RequestParam(defaultValue = "6") int size,
+
+                        @Parameter(description = "Campo utilizado para ordenar os eventos.", example = "nomeEvento") @RequestParam(defaultValue = "nomeEvento") String sort) {
+
+                Pageable pageable = PageRequest.of(
+                                page,
+                                size,
+                                Sort.by(sort));
+
+                return ResponseEntity.ok(
+                                eventoService.buscarPagina(
+                                                nome,
+                                                pageable));
         }
 
         @Operation(summary = "Buscar evento por ID", description = "Busca um evento através do seu ID. Este endpoint é público.")
@@ -149,5 +182,4 @@ public class EventoController {
 
                 return ResponseEntity.noContent().build();
         }
-
 }
