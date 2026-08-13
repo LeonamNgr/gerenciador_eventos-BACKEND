@@ -2,6 +2,8 @@ package com.leonam.gerenciador_eventos.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -70,6 +72,28 @@ public class EventoService {
                 .stream()
                 .map(this::converterParaResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<EventoResponseDTO> buscarPagina(
+            String nomeEvento,
+            Pageable pageable) {
+
+        Page<Evento> pagina;
+
+        if (nomeEvento == null || nomeEvento.isBlank()) {
+
+            pagina = eventoRepository.findAll(pageable);
+
+        } else {
+
+            pagina = eventoRepository
+                    .findByNomeEventoContainingIgnoreCase(
+                            nomeEvento,
+                            pageable);
+        }
+
+        return pagina.map(this::converterParaResponse);
     }
 
     @Transactional(readOnly = true)

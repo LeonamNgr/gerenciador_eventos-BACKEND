@@ -2,6 +2,8 @@ package com.leonam.gerenciador_eventos.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,4 +19,8 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
     long countByAdministradorId(Long administradorId);
 
     List<Evento> findByNomeEventoContainingIgnoreCase(String nomeEvento);
+
+    Page<Evento> findByNomeEventoContainingIgnoreCase(
+            String nomeEvento,
+            Pageable pageable);
 }
