@@ -2,6 +2,8 @@ package com.leonam.gerenciador_eventos.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -100,6 +102,30 @@ public class AdministradorService {
                                 .stream()
                                 .map(this::converterParaResponse)
                                 .toList();
+        }
+
+        @Transactional(readOnly = true)
+        public Page<AdministradorResponseDTO> buscarPagina(
+                        String nome,
+                        Pageable pageable) {
+
+                Page<Administrador> pagina;
+
+                if (nome == null || nome.isBlank()) {
+
+                        pagina = administradorRepository
+                                        .findAll(pageable);
+
+                } else {
+
+                        pagina = administradorRepository
+                                        .findByNomeContainingIgnoreCase(
+                                                        nome,
+                                                        pageable);
+                }
+
+                return pagina.map(
+                                this::converterParaResponse);
         }
 
         @Transactional
