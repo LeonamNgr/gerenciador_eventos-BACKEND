@@ -71,6 +71,12 @@ public class SecurityConfig {
                                                                 "/administradores")
                                                 .permitAll()
 
+                                                // Solicitação de alteração de senha pública
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/solicitacoes-senha")
+                                                .permitAll()
+
                                                 // Consulta pública de eventos
                                                 .requestMatchers(
                                                                 HttpMethod.GET,
