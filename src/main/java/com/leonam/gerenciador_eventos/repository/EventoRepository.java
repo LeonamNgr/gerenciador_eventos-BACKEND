@@ -18,7 +18,8 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
 
     long countByAdministradorId(Long administradorId);
 
-    List<Evento> findByNomeEventoContainingIgnoreCase(String nomeEvento);
+    List<Evento> findByNomeEventoContainingIgnoreCase(
+            String nomeEvento);
 
     Page<Evento> findByNomeEventoContainingIgnoreCase(
             String nomeEvento,
