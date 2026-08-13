@@ -166,6 +166,16 @@ public class GlobalExceptionHandler {
                                 "Não foi possível concluir a operação porque os dados violam uma regra do banco de dados.");
         }
 
+        @ExceptionHandler(SenhasNaoConferemException.class)
+        public ResponseEntity<ErroResponseDTO> senhasNaoConferem(
+                        SenhasNaoConferemException exception) {
+
+                return criarResposta(
+                                HttpStatus.BAD_REQUEST,
+                                "Senhas não conferem",
+                                exception.getMessage());
+        }
+
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ErroResponseDTO> erroInterno(
                         Exception exception) {

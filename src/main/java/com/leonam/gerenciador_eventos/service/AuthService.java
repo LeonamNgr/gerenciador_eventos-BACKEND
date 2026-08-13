@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.leonam.gerenciador_eventos.dto.request.LoginRequestDTO;
+import com.leonam.gerenciador_eventos.dto.response.AdministradorResponseDTO;
 import com.leonam.gerenciador_eventos.dto.response.LoginResponseDTO;
 import com.leonam.gerenciador_eventos.entity.Administrador;
 import com.leonam.gerenciador_eventos.exception.CredenciaisInvalidasException;
@@ -44,6 +45,13 @@ public class AuthService {
 
         String token = tokenService.gerarToken(administrador);
 
-        return new LoginResponseDTO(token);
+        AdministradorResponseDTO administradorResponse = new AdministradorResponseDTO(
+                administrador.getId(),
+                administrador.getNome(),
+                administrador.getEmail());
+
+        return new LoginResponseDTO(
+                token,
+                administradorResponse);
     }
 }

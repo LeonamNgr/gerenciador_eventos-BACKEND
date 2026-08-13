@@ -2,16 +2,22 @@ package com.leonam.gerenciador_eventos.service;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.leonam.gerenciador_eventos.dto.request.AdministradorEdicaoRequestDTO;
 import com.leonam.gerenciador_eventos.dto.request.AdministradorRequestDTO;
+import com.leonam.gerenciador_eventos.dto.request.AlterarSenhaRequestDTO;
 import com.leonam.gerenciador_eventos.dto.response.AdministradorResponseDTO;
 import com.leonam.gerenciador_eventos.entity.Administrador;
 import com.leonam.gerenciador_eventos.exception.AdministradorNaoEncontradoException;
+import com.leonam.gerenciador_eventos.exception.CredenciaisInvalidasException;
 import com.leonam.gerenciador_eventos.exception.EmailJaCadastradoException;
 import com.leonam.gerenciador_eventos.exception.EventosVinculadosException;
+import com.leonam.gerenciador_eventos.exception.SenhasNaoConferemException;
 import com.leonam.gerenciador_eventos.repository.AdministradorRepository;
 import com.leonam.gerenciador_eventos.repository.EventoRepository;
 
@@ -66,11 +72,13 @@ public class AdministradorService {
         @Transactional(readOnly = true)
         public Administrador buscarEntidadePorId(Long id) {
 
-                return administradorRepository.findById(id)
-                                .orElseThrow(() -> new AdministradorNaoEncontradoException(
-                                                "Administrador com ID "
-                                                                + id
-                                                                + " não encontrado."));
+                return administradorRepository
+                                .findById(id)
+                                .orElseThrow(
+                                                () -> new AdministradorNaoEncontradoException(
+                                                                "Administrador com ID "
+                                                                                + id
+                                                                                + " não encontrado."));
         }
 
         @Transactional(readOnly = true)
@@ -87,7 +95,8 @@ public class AdministradorService {
         @Transactional(readOnly = true)
         public List<AdministradorResponseDTO> buscarTodos() {
 
-                return administradorRepository.findAll()
+                return administradorRepository
+                                .findAll()
                                 .stream()
                                 .map(this::converterParaResponse)
                                 .toList();
@@ -96,7 +105,7 @@ public class AdministradorService {
         @Transactional
         public AdministradorResponseDTO editar(
                         Long id,
-                        AdministradorRequestDTO dto) {
+                        AdministradorEdicaoRequestDTO dto) {
 
                 Administrador administrador = buscarEntidadePorId(id);
 
@@ -112,16 +121,49 @@ public class AdministradorService {
                 administrador.setNome(dto.getNome());
                 administrador.setEmail(dto.getEmail());
 
-                if (dto.getSenha() != null
-                                && !dto.getSenha().isBlank()) {
-
-                        administrador.setSenha(
-                                        passwordEncoder.encode(dto.getSenha()));
-                }
-
                 administrador = administradorRepository.save(administrador);
 
                 return converterParaResponse(administrador);
+        }
+
+        @Transactional
+        public void alterarSenha(
+                        AlterarSenhaRequestDTO dto) {
+
+                Administrador administrador = obterAdministradorLogado();
+
+                /*
+                 * Verifica se a senha atual
+                 * informada está correta.
+                 */
+                if (!passwordEncoder.matches(
+                                dto.getSenhaAtual(),
+                                administrador.getSenha())) {
+
+                        throw new CredenciaisInvalidasException(
+                                        "A senha atual está incorreta.");
+                }
+
+                /*
+                 * Verifica se a nova senha
+                 * foi confirmada corretamente.
+                 */
+                if (!dto.getNovaSenha().equals(
+                                dto.getConfirmarNovaSenha())) {
+
+                        throw new SenhasNaoConferemException(
+                                        "A nova senha e a confirmação da senha não conferem.");
+                }
+
+                /*
+                 * Criptografa a nova senha
+                 * antes de armazená-la no banco.
+                 */
+                administrador.setSenha(
+                                passwordEncoder.encode(
+                                                dto.getNovaSenha()));
+
+                administradorRepository.save(administrador);
         }
 
         @Transactional
@@ -129,7 +171,8 @@ public class AdministradorService {
 
                 Administrador administrador = buscarEntidadePorId(id);
 
-                if (eventoRepository.existsByAdministradorId(id)) {
+                if (eventoRepository
+                                .existsByAdministradorId(id)) {
 
                         throw new EventosVinculadosException(
                                         "Não é possível excluir o administrador com ID "
@@ -138,6 +181,23 @@ public class AdministradorService {
                 }
 
                 administradorRepository.delete(administrador);
+        }
+
+        private Administrador obterAdministradorLogado() {
+
+                Authentication authentication = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication();
+
+                if (authentication == null
+                                || !authentication.isAuthenticated()
+                                || !(authentication.getPrincipal() instanceof Administrador)) {
+
+                        throw new AdministradorNaoEncontradoException(
+                                        "Administrador autenticado não encontrado.");
+                }
+
+                return (Administrador) authentication.getPrincipal();
         }
 
         private AdministradorResponseDTO converterParaResponse(

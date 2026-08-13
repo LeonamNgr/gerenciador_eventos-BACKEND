@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.leonam.gerenciador_eventos.dto.request.AdministradorEdicaoRequestDTO;
 import com.leonam.gerenciador_eventos.dto.request.AdministradorRequestDTO;
+import com.leonam.gerenciador_eventos.dto.request.AlterarSenhaRequestDTO;
 import com.leonam.gerenciador_eventos.dto.response.AdministradorResponseDTO;
 import com.leonam.gerenciador_eventos.service.AdministradorService;
 
@@ -91,7 +94,7 @@ public class AdministradorController {
                                 administradorService.buscarPorId(id));
         }
 
-        @Operation(summary = "Editar administrador", description = "Atualiza os dados de um administrador.")
+        @Operation(summary = "Editar administrador", description = "Atualiza o nome e o e-mail de um administrador. A senha não é alterada por este endpoint.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Administrador atualizado com sucesso"),
                         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
@@ -103,10 +106,26 @@ public class AdministradorController {
         @PutMapping("/{id}")
         public ResponseEntity<AdministradorResponseDTO> editar(
                         @PathVariable Long id,
-                        @Valid @RequestBody AdministradorRequestDTO dto) {
+                        @Valid @RequestBody AdministradorEdicaoRequestDTO dto) {
 
                 return ResponseEntity.ok(
                                 administradorService.editar(id, dto));
+        }
+
+        @Operation(summary = "Alterar senha", description = "Altera a senha do administrador autenticado. É necessário informar a senha atual, a nova senha e a confirmação da nova senha.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "204", description = "Senha alterada com sucesso"),
+                        @ApiResponse(responseCode = "400", description = "Dados inválidos ou senhas não conferem"),
+                        @ApiResponse(responseCode = "401", description = "Senha atual incorreta ou usuário não autenticado"),
+                        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+        })
+        @PatchMapping("/senha")
+        public ResponseEntity<Void> alterarSenha(
+                        @Valid @RequestBody AlterarSenhaRequestDTO dto) {
+
+                administradorService.alterarSenha(dto);
+
+                return ResponseEntity.noContent().build();
         }
 
         @Operation(summary = "Excluir administrador", description = "Exclui um administrador através do seu ID.")
