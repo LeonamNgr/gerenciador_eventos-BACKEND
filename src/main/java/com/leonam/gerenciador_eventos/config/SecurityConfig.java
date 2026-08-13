@@ -65,6 +65,12 @@ public class SecurityConfig {
                                                                 "/v3/api-docs/**")
                                                 .permitAll()
 
+                                                // Cadastro de administrador público
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/administradores")
+                                                .permitAll()
+
                                                 // Consulta pública de eventos
                                                 .requestMatchers(
                                                                 HttpMethod.GET,

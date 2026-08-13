@@ -9,8 +9,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Schema(description = "Dados para cadastro de administrador")
-public class AdministradorRequestDTO {
+@Schema(description = "Dados para edição de administrador")
+public class AdministradorEdicaoRequestDTO {
 
     @Schema(description = "Nome do administrador", example = "Maria")
     @NotBlank(message = "O nome do administrador é obrigatório.")
@@ -22,9 +22,4 @@ public class AdministradorRequestDTO {
     @Email(message = "E-mail inválido.")
     @Size(max = 100, message = "O e-mail do administrador deve ter no máximo 100 caracteres.")
     private String email;
-
-    @Schema(description = "Senha do administrador", example = "Admin@123456")
-    @NotBlank(message = "A senha do administrador é obrigatória.")
-    @Size(min = 8, max = 20, message = "A senha deve ter entre 8 e 20 caracteres.")
-    private String senha;
 }
