@@ -101,6 +101,20 @@ public class EventoController {
                                 eventoService.buscarPorAdministrador(administradorId));
         }
 
+        @Operation(summary = "Contar eventos do administrador autenticado", description = "Retorna a quantidade de eventos cadastrados pelo administrador autenticado.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Quantidade de eventos retornada com sucesso"),
+                        @ApiResponse(responseCode = "401", description = "Usuário não autenticado ou token inválido"),
+                        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+        })
+        @SecurityRequirement(name = "bearerAuth")
+        @GetMapping("/meus/count")
+        public ResponseEntity<Long> contarMeusEventos() {
+
+                return ResponseEntity.ok(
+                                eventoService.contarMeusEventos());
+        }
+
         @Operation(summary = "Editar evento", description = "Atualiza os dados de um evento. Qualquer administrador autenticado pode editar qualquer evento.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Evento atualizado com sucesso"),
@@ -135,4 +149,5 @@ public class EventoController {
 
                 return ResponseEntity.noContent().build();
         }
+
 }

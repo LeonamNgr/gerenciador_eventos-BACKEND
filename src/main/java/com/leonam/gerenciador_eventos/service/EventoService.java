@@ -152,4 +152,13 @@ public class EventoService {
                 evento.getAdministrador().getId(),
                 evento.getAdministrador().getNome());
     }
+
+    @Transactional(readOnly = true)
+    public long contarMeusEventos() {
+
+        Administrador administrador = obterAdministradorLogado();
+
+        return eventoRepository.countByAdministradorId(
+                administrador.getId());
+    }
 }
